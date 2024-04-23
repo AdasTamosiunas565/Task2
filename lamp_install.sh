@@ -24,12 +24,31 @@ download_compile_install() {
   cd "$DIRNAME" || exit
   ./configure --prefix=/opt/"$DIRNAME"
   make
+  if [ $? -ne 0 ]; then
+    echo "Failed to compile $DIRNAME"
+    exit 1
+  fi
   sudo make install
   if [ $? -ne 0 ]; then
-    echo "Failed to compile and install $DIRNAME"
+    echo "Failed to install $DIRNAME"
     exit 1
   fi
 }
+
+# Update package lists and upgrade installed packages
+echo "Updating package lists and upgrading installed packages..."
+sudo apt update
+sudo apt upgrade -y
+
+# Install required dependencies
+echo "Installing required dependencies..."
+sudo apt install -y wget tar build-essential
+
+# Check if make command is available
+if ! command -v make &> /dev/null; then
+    echo "make command not found. Please install make and try again."
+    exit 1
+fi
 
 # Install Apache
 echo "Installing Apache..."
