@@ -33,7 +33,7 @@ download_compile_install() {
 
 # Install Apache
 echo "Installing Apache..."
-download_compile_install https://www.apache.org/dist/httpd/httpd-2.4.52.tar.gz
+download_compile_install https://archive.apache.org/dist/httpd/httpd-2.4.52.tar.gz
 
 # Install MariaDB
 echo "Installing MariaDB..."
