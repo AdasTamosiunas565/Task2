@@ -27,17 +27,16 @@ install_component() {
     fi
 }
 
-# Install Apache
-install_component "2.4.52" "https://archive.apache.org/dist/httpd/httpd-2.4.52.tar.gz" "apache"
+# Install Apache (newer version)
+install_component "2.4.54" "https://archive.apache.org/dist/httpd/httpd-2.4.54.tar.gz" "apache"
 
-# Install MariaDB
-install_component "10.7.1" "https://downloads.mariadb.org/interstitial/mariadb-10.7.1/source/mariadb-10.7.1.tar.gz" "mariadb"
+# Install MariaDB (use apt installation)
+sudo apt install -y mariadb-server
 
-# Install PHP
-install_component "8.1.3" "https://www.php.net/distributions/php-8.1.3.tar.gz" "php"
+# Install PHP (newer version)
+install_component "8.1.4" "https://www.php.net/distributions/php-8.1.4.tar.gz" "php"
 
-# Start Apache and MariaDB
+# Start Apache
 sudo "$installation_dir/apache/bin/apachectl" start
-sudo "$installation_dir/mariadb/bin/mysqld_safe" --datadir="$installation_dir/mariadb/data" &
 
 echo "Installation completed."
