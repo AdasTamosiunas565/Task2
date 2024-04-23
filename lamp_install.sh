@@ -1,42 +1,80 @@
 #!/bin/bash
 
-# System update
-sudo apt update
-sudo apt upgrade -y
-sudo apt install -y build-essential wget
-
-# Installation directory
-installation_dir="/opt"
-
-# Function to download, extract, compile, and install a component
-install_component() {
-    local version="$1"
-    local url="$2"
-    local dir_name="$3"
-
-    # Check if component is already installed
-    if [ ! -d "$installation_dir/$dir_name" ]; then
-        # Download and extract
-        wget -P /tmp "$url"
-        tar -xzvf /tmp/$(basename "$url") -C /tmp
-
-        # Compile and install
-        cd /tmp/$(basename "$url" .tar.gz)
-        ./configure --prefix="$installation_dir/$dir_name"
-        make && sudo make install
-    fi
+# Function to check if a command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
 }
 
-# Install Apache (newer version)
-install_component "2.4.54" "https://archive.apache.org/dist/httpd/httpd-2.4.54.tar.gz" "apache"
+# Function to download, extract, compile, and install software
+download_compile_install() {
+  URL=$1
+  FILENAME=$(basename "$URL")
+  DIRNAME=$(basename "$FILENAME" .tar.gz)
 
-# Install MariaDB (use apt installation)
-sudo apt install -y mariadb-server
+  # Download
+  wget "$URL"
+  if [ $? -ne 0 ]; then
+    echo "Failed to download $FILENAME"
+    exit 1
+  fi
 
-# Install PHP (newer version)
-install_component "8.1.4" "https://www.php.net/distributions/php-8.1.4.tar.gz" "php"
+  # Extract
+  tar -xzvf "$FILENAME"
+  if [ $? -ne 0 ]; then
+    echo "Failed to extract $FILENAME"
+    exit 1
+  fi
+
+  # Compile and install
+  cd "$DIRNAME" || exit
+  ./configure --prefix=/opt/"$DIRNAME"
+  make
+  sudo make install
+  if [ $? -ne 0 ]; then
+    echo "Failed to compile and install $DIRNAME"
+    exit 1
+  fi
+}
+
+# Check if git is installed
+if ! command_exists git; then
+  echo "Git is not installed. Installing..."
+  sudo apt update
+  sudo apt install -y git
+fi
+
+# Clone repository containing lamp_install.sh
+git clone https://github.com/AdasTamosiunas565/Task2.git
+cd lamp_install || exit
+
+# Install Apache
+echo "Installing Apache..."
+download_compile_install https://www.apache.org/dist/httpd/httpd-2.4.52.tar.gz
+
+# Install MariaDB
+echo "Installing MariaDB..."
+download_compile_install https://downloads.mariadb.org/interstitial/mariadb-10.7.3/source/mariadb-10.7.3.tar.gz
+
+# Install PHP
+echo "Installing PHP..."
+download_compile_install https://www.php.net/distributions/php-8.1.4.tar.gz
 
 # Start Apache
-sudo "$installation_dir/apache/bin/apachectl" start
+/opt/httpd-2.4.52/bin/apachectl start
 
-echo "Installation completed."
+# Start MariaDB
+/opt/mariadb-10.7.3/bin/mysqld_safe &
+
+# Test Apache
+echo "Testing Apache..."
+curl http://localhost:80
+
+# Test PHP
+echo "Testing PHP..."
+/opt/php-8.1.4/bin/php -v
+
+# Test MariaDB
+echo "Testing MariaDB..."
+/opt/mariadb-10.7.3/bin/mysql --version
+
+echo "LAMP stack installation completed successfully!"
