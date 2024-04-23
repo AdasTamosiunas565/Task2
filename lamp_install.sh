@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Function to check if a command exists
-command_exists() {
-  command -v "$1" >/dev/null 2>&1
-}
-
 # Function to download, extract, compile, and install software
 download_compile_install() {
   URL=$1
@@ -36,17 +31,6 @@ download_compile_install() {
   fi
 }
 
-# Check if git is installed
-if ! command_exists git; then
-  echo "Git is not installed. Installing..."
-  sudo apt update
-  sudo apt install -y git
-fi
-
-# Clone repository containing lamp_install.sh
-git clone https://github.com/AdasTamosiunas565/Task2.git
-cd lamp_install || exit
-
 # Install Apache
 echo "Installing Apache..."
 download_compile_install https://www.apache.org/dist/httpd/httpd-2.4.52.tar.gz
@@ -60,9 +44,11 @@ echo "Installing PHP..."
 download_compile_install https://www.php.net/distributions/php-8.1.4.tar.gz
 
 # Start Apache
+echo "Starting Apache..."
 /opt/httpd-2.4.52/bin/apachectl start
 
 # Start MariaDB
+echo "Starting MariaDB..."
 /opt/mariadb-10.7.3/bin/mysqld_safe &
 
 # Test Apache
